@@ -5,8 +5,9 @@ import { defineClientConfig } from 'vuepress/client'
 // import Swiper from 'vuepress-theme-plume/features/Swiper.vue'
 
 // import CustomComponent from './theme/components/Custom.vue'
+import Gallery from './theme/components/Gallery.vue'
 
-// import './theme/styles/custom.css'
+import './theme/styles/custom.css'
 
 export default defineClientConfig({
   enhance({ app }) {
@@ -18,5 +19,6 @@ export default defineClientConfig({
 
     // your custom components
     // app.component('CustomComponent', CustomComponent)
+    app.component('Gallery', Gallery)
   },
 })

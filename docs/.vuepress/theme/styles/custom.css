@@ -1,50 +1,262 @@
-:root {
-  /** 主题颜色 */
+/* ============================================================
+ * linxaura — Global Styles
+ * Navbar: glassmorphism on home, white elsewhere
+ * Hero: left-aligned text, wallpaper filter, exact viewport
+ * Fonts: Noto Serif SC (tagline) + LXGW WenKai (description)
+ * Footer: below hero, scroll to see
+ * Friends: glassmorphism cards
+ * ============================================================ */
 
-  /*
-  --vp-c-brand-1: #5086a1;
-  --vp-c-brand-2: #6aa1b7;
-  --vp-c-brand-3: #8cccd5;
-  --vp-c-brand-soft: rgba(131, 208, 218, 0.314);
-  */
+/* ============================================================
+ * Global: faint wallpaper behind non-home pages
+ * ============================================================ */
 
-  /** 背景颜色 */
-
-  /*
-  --vp-c-bg: #fff;
-  --vp-c-bg-alt: #f6f6f7;
-  --vp-c-bg-elv: #fff;
-  --vp-c-bg-soft: #f6f6f7;
-  */
-
-  /** 文本颜色 */
-
-  /*
-  --vp-c-text-1: rgba(60, 60, 67);
-  --vp-c-text-2: rgba(60, 60, 67, 0.78);
-  --vp-c-text-3: rgba(60, 60, 67, 0.56);
-  */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: url('/desktop.png') center / cover no-repeat fixed;
+  opacity: 0;
 }
 
-/** 深色模式 */
-[data-theme="dark"] {
-  /*
-  --vp-c-brand-1: #8cccd5;
-  --vp-c-brand-2: #6aa1b7;
-  --vp-c-brand-3: #5086a1;
-  --vp-c-brand-soft: rgba(131, 208, 218, 0.314);
-  */
+body:not(:has(.vp-home-hero))::before {
+  opacity: 0.12;
+}
 
-  /*
-  --vp-c-bg: #1b1b1f;
-  --vp-c-bg-alt: #161618;
-  --vp-c-bg-elv: #202127;
-  --vp-c-bg-soft: #202127;
-  */
+body:not(:has(.vp-home-hero)) {
+  --vp-c-bg: rgba(255, 255, 255, 0.92);
+  --vp-c-bg-alt: rgba(246, 246, 247, 0.9);
+  --vp-c-bg-elv: rgba(255, 255, 255, 0.94);
+  --vp-c-bg-soft: rgba(246, 246, 247, 0.9);
+}
 
-  /*
-  --vp-c-text-1: rgba(255, 255, 245, 0.86);
-  --vp-c-text-2: rgba(235, 235, 245, 0.6);
-  --vp-c-text-3: rgba(235, 235, 245, 0.38);
-  */
+[data-theme="dark"] body:not(:has(.vp-home-hero)) {
+  --vp-c-bg: rgba(27, 27, 31, 0.88);
+  --vp-c-bg-alt: rgba(22, 22, 24, 0.86);
+  --vp-c-bg-elv: rgba(32, 33, 39, 0.9);
+  --vp-c-bg-soft: rgba(32, 33, 39, 0.86);
+}
+
+/* ============================================================
+ * Navbar
+ * ============================================================ */
+
+.vp-navbar.home.top,
+.vp-navbar.home:not(.top) {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+}
+
+[data-theme="dark"] .vp-navbar.home.top,
+[data-theme="dark"] .vp-navbar.home:not(.top) {
+  background-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+.vp-navbar.home .divider-line {
+  background-color: var(--vp-c-gutter);
+  opacity: 0.6;
+}
+
+[data-theme="dark"] .vp-navbar.home .divider-line {
+  opacity: 0.4;
+}
+
+/* ============================================================
+ * Hero
+ * ============================================================ */
+
+.vp-home-hero.full {
+  height: calc(100vh + var(--vp-nav-height)) !important;
+}
+
+.vp-home-hero.full .hero-container {
+  justify-content: flex-start !important;
+}
+
+.vp-home-hero .hero-content {
+  background: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: none;
+  border-radius: 0;
+  padding: 0 0 0 max(6%, 48px);
+  max-width: 680px;
+  margin: 0 !important;
+  text-align: left !important;
+}
+
+.vp-home-hero .hero-name {
+  --vp-home-hero-name-color: rgba(255, 255, 255, 0.9);
+  --vp-home-hero-name-background: none;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.9) !important;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  margin: 0 !important;
+}
+
+[data-theme="dark"] .vp-home-hero .hero-name {
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.vp-home-hero .hero-tagline {
+  --vp-c-home-hero-tagline: rgba(255, 255, 255, 0.95);
+  font-family: 'Noto Serif SC', 'Source Han Serif SC', 'STSong', 'SimSun', serif;
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.04em;
+  margin: 14px 0 0 0 !important;
+  text-shadow: 0 3px 14px rgba(0, 0, 0, 0.55);
+}
+
+[data-theme="dark"] .vp-home-hero .hero-tagline {
+  --vp-c-home-hero-tagline: rgba(255, 255, 255, 0.9);
+}
+
+.vp-home-hero .hero-text {
+  --vp-c-home-hero-text: rgba(255, 255, 255, 0.72);
+  font-family: 'LXGW WenKai GB', 'KaiTi', 'STKaiti', serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.8;
+  margin-top: 16px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme="dark"] .vp-home-hero .hero-text {
+  --vp-c-home-hero-text: rgba(255, 255, 255, 0.68);
+}
+
+.vp-home-hero .actions {
+  justify-content: flex-start;
+  margin-top: 28px;
+}
+
+/* ============================================================
+ * Footer
+ * ============================================================ */
+
+.vp-footer {
+  border-top: 1px solid var(--vp-c-gutter) !important;
+  padding: 14px 24px !important;
+}
+
+.vp-footer .message,
+.vp-footer .copyright {
+  font-size: 13px;
+  color: var(--vp-c-text-2);
+}
+
+/* ============================================================
+ * Friends (友链) — Glassmorphism Cards
+ * ============================================================ */
+
+.vp-friends .title {
+  font-family: 'Noto Serif SC', 'Source Han Serif SC', 'STSong', 'SimSun', serif !important;
+  font-size: 30px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+}
+
+.vp-friends .description {
+  font-family: 'LXGW WenKai GB', 'KaiTi', 'STKaiti', serif !important;
+  font-size: 16px !important;
+  opacity: 0.72;
+}
+
+.vp-friend {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(128, 128, 128, 0.12) !important;
+  border-radius: 16px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  cursor: pointer;
+}
+
+[data-theme="dark"] .vp-friend {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.vp-friend:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 1px 0 rgba(255, 255, 255, 0.4) inset !important;
+  transform: translateY(-2px);
+  border-color: rgba(128, 128, 128, 0.2) !important;
+}
+
+[data-theme="dark"] .vp-friend:hover {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.08) inset !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.vp-friend .avatar {
+  border-radius: 100% !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .vp-friend .avatar {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+.vp-friend .content .title {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+}
+
+.vp-friend .content .desc {
+  font-family: 'LXGW WenKai GB', 'KaiTi', 'STKaiti', serif !important;
+  line-height: 1.6 !important;
+}
+
+.vp-friend .content .location,
+.vp-friend .content .organization {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 13px !important;
+  opacity: 0.65;
+}
+
+/* ============================================================
+ * Responsive
+ * ============================================================ */
+
+@media (max-width: 768px) {
+  .vp-home-hero .hero-content {
+    padding: 0 20px;
+    max-width: 100%;
+  }
+
+  .vp-home-hero .hero-name {
+    font-size: 13px;
+    letter-spacing: 0.3em;
+  }
+
+  .vp-home-hero .hero-tagline {
+    font-size: 32px;
+  }
+
+  .vp-home-hero .hero-text {
+    font-size: 16px;
+  }
+
+  .vp-friends .title {
+    font-size: 24px !important;
+  }
+
+  .vp-friend {
+    border-radius: 12px !important;
+  }
 }

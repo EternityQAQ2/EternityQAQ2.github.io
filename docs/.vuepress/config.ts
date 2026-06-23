@@ -31,7 +31,11 @@ export default defineUserConfig({
 
   head: [
     // 配置站点图标
-    ['link', { rel: 'icon', type: 'image/png', href: 'https://theme-plume.vuejs.press/favicon-32x32.png' }],
+    ['link', { rel: 'icon', type: 'image/png', href: '/1.png' }],
+    // 思源宋体 Bold — Google Fonts, 优雅标题
+    ['link', { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700;900&display=swap' }],
+    // 霞鹜文楷 — jsDelivr CDN, 楷体正文
+    ['link', { rel: 'stylesheet', href: 'https://cdn.jsdelivr.net/npm/lxgw-wenkai-gb-web@latest/style.css' }],
   ],
 
   bundler: viteBundler(),

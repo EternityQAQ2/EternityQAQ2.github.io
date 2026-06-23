@@ -5,12 +5,12 @@ config:
   -
     type: hero
     full: true
-    forceDark: true
-    effect: lightning
+    backgroundImage: '/desktop.png'
+    filter: saturate(0.75) brightness(0.9)
     hero:
-      name: Theme Plume
-      tagline: VuePress Next Theme
-      text: 一个简约的，功能丰富的 vuepress 文档&博客 主题
+      name: Linxaura
+      tagline: 犹豫和果决中前进。
+      text: 一个记录代码灵感与光影瞬间的个人站点。
       actions:
         -
           theme: brand
@@ -19,5 +19,4 @@ config:
         -
           theme: alt
           text: Github →
-          link: https://github.com/pengzhanbo/vuepress-theme-plume
----
+          link: https://github.com/EternityQAQ2

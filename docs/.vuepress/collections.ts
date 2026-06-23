@@ -46,31 +46,8 @@ const zhBlog = defineCollection({
   //   pagination: 15, // 每页显示文章数量
 })
 
-const zhDemoDoc = defineCollection({
-  // doc 类型，该类型带有侧边栏
-  type: 'doc',
-  // 文档集合所在目录，相对于 `docs/`
-  dir: 'demo',
-  // `dir` 所指向的目录中的所有 markdown 文件，其 permalink 需要以 `linkPrefix` 配置作为前缀
-  // 如果 前缀不一致，则无法生成侧边栏。
-  // 所以请确保  markdown 文件的 permalink 都以 `/` + `linkPrefix` 开头
-  linkPrefix: '/demo',
-  // 文档标题，它将用于在页面的面包屑导航中显示
-  title: 'Demo',
-  // 手动配置侧边栏结构
-  sidebar: ['', 'foo', 'bar'],
-  // 根据文件结构自动生成侧边栏
-  // sidebar: 'auto',
-})
-
-/**
- * 导出所有的 collections
- *  (zhBlog 为博客示例，如果不需要博客功能，请删除)
- *  (zhDemoDoc 为参考示例，如果不需要它，请删除)
- */
 export const zhCollections = defineCollections([
   zhBlog,
-  zhDemoDoc,
 ])
 
 /* =================== locale: en-US ======================= */
@@ -83,7 +60,7 @@ const enBlog = defineCollection({
   // 文档标题，它将用于在页面的面包屑导航中显示
   title: 'Blog',
   // 文章列表页的链接，如果 `linkPrefix` 未定义，它也将作为 相关的文章的 permalink 的前缀
-  link: '/blog/',
+  link: '/en/blog/',
   //   linkPrefix: '/article/', // 相关文章的链接前缀
   //   postList: true, // 是否启用文章列表页
   //   tags: true, // 是否启用标签页
@@ -93,30 +70,7 @@ const enBlog = defineCollection({
   //   pagination: 15, // 每页显示文章数量
 })
 
-const enDemoDoc = defineCollection({
-  // doc 类型，该类型带有侧边栏
-  type: 'doc',
-  // 文档集合所在目录，相对于 `docs/en/`
-  dir: 'demo',
-  // `dir` 所指向的目录中的所有 markdown 文件，其 permalink 需要以 `linkPrefix` 配置作为前缀
-  // 如果 前缀不一致，则无法生成侧边栏。
-  // 所以请确保  markdown 文件的 permalink 都以 `/en/` + `linkPrefix` 开头
-  linkPrefix: '/demo',
-  // 文档标题，它将用于在页面的面包屑导航中显示
-  title: 'Demo',
-  // 手动配置侧边栏结构
-  sidebar: ['', 'foo', 'bar'],
-  // 根据文件结构自动生成侧边栏
-  // sidebar: 'auto',
-})
-
-/**
- * 导出所有的 collections
- *  (enBlog 为博客示例，如果不需要博客功能，请删除)
- *  (enDemoDoc 为参考示例，如果不需要它，请删除)
- */
 export const enCollections = defineCollections([
   enBlog,
-  enDemoDoc,
 ])
 

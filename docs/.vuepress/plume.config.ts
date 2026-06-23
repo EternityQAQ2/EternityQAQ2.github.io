@@ -18,7 +18,7 @@ import { enNavbar, zhNavbar } from './navbar'
  * @see https://theme-plume.vuejs.press/config/theme/
  */
 export default defineThemeConfig({
-  logo: 'https://theme-plume.vuejs.press/plume.png',
+  //logo: '/1.png',
 
   appearance: true,  // 配置 深色模式
 
@@ -40,10 +40,10 @@ export default defineThemeConfig({
   // createTime: true, // 是否显示文章创建时间
 
   /* 站点页脚 */
-  // footer: {
-  //   message: 'Power by <a target="_blank" href="https://v2.vuepress.vuejs.org/">VuePress</a> & <a target="_blank" href="https://theme-plume.vuejs.press">vuepress-theme-plume</a>',
-  //   copyright: '',
-  // },
+  footer: {
+    message: 'Powered by <a target="_blank" href="https://v2.vuepress.vuejs.org/">VuePress</a> & <a target="_blank" href="https://theme-plume.vuejs.press">vuepress-theme-plume</a>',
+    copyright: '© 2026 linxaura',
+  },
 
   /* 过渡动画 @see https://theme-plume.vuejs.press/config/theme/#transition */
   // transition: {
@@ -58,9 +58,9 @@ export default defineThemeConfig({
        * @see https://theme-plume.vuejs.press/config/theme/#profile
        */
       profile: {
-        avatar: 'https://theme-plume.vuejs.press/plume.png',
+        avatar: '/1.png',
         name: 'linxaura',
-        description: 'a blog website',
+        description: '犹豫和果决中前进。',
         // circle: true,
         // location: '',
         // organization: '',
@@ -85,9 +85,9 @@ export default defineThemeConfig({
        * @see https://theme-plume.vuejs.press/config/theme/#profile
        */
       profile: {
-        avatar: 'https://theme-plume.vuejs.press/plume.png',
+        avatar: '/1.png',
         name: 'linxaura',
-        description: 'a blog website',
+        description: 'Forward, through hesitation and resolve.',
         // circle: true,
         // location: '',
         // organization: '',
