@@ -3,7 +3,7 @@ title: 大连理工大学高级统计方法总结
 tags:
   - DUT
   - 高级统计方法
-createTime: 2026/05/11 22:38:53
+createTime: 2024/05/11 22:38:53
 permalink: /blog/ketyaal8/
 ---
 
