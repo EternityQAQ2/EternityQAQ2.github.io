@@ -11,4 +11,3 @@ docs/.vuepress/public/gallery-app
 # Afilmory build artifacts
 afilmory/node_modules
 afilmory/apps/web/dist
-afilmory/apps/web/src/data/photos-manifest.json
