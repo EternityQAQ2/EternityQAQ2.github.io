@@ -3,7 +3,7 @@ import { computed } from 'vue'
 
 const isDev = import.meta.env.DEV
 const frameSrc = computed(() =>
-  isDev ? 'http://localhost:13333' : '/gallery-app/index.html',
+  isDev ? 'http://localhost:13333' : '/gallery-app/',
 )
 </script>
 

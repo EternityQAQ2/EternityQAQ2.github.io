@@ -1,5 +1,7 @@
 import type { CameraInfo, LensInfo, PhotoManifestItem } from '@afilmory/builder'
 
+const baseUrl: string = typeof import.meta !== 'undefined' ? import.meta.env.BASE_URL : '/'
+
 class PhotoLoader {
   private photos: PhotoManifestItem[] = []
   private photoMap: Record<string, PhotoManifestItem> = {}
@@ -13,11 +15,21 @@ class PhotoLoader {
     this.getPhotos = this.getPhotos.bind(this)
     this.getPhoto = this.getPhoto.bind(this)
 
-    this.photos = __MANIFEST__.data as unknown as PhotoManifestItem[]
-    this.cameras = __MANIFEST__.cameras as unknown as CameraInfo[]
-    this.lenses = __MANIFEST__.lenses as unknown as LensInfo[]
+    const manifest = typeof __MANIFEST__ !== 'undefined' ? __MANIFEST__ : { data: [], cameras: [], lenses: [] }
+    this.photos = (manifest.data ?? []) as unknown as PhotoManifestItem[]
+    this.cameras = (manifest.cameras ?? []) as unknown as CameraInfo[]
+    this.lenses = (manifest.lenses ?? []) as unknown as LensInfo[]
 
     this.photos.forEach((photo) => {
+      // 修正图片 URL：添加 base 路径
+      if (baseUrl !== '/') {
+        if (photo.originalUrl?.startsWith('/')) {
+          photo.originalUrl = `${baseUrl}${photo.originalUrl.slice(1)}`
+        }
+        if (photo.thumbnailUrl?.startsWith('/')) {
+          photo.thumbnailUrl = `${baseUrl}${photo.thumbnailUrl.slice(1)}`
+        }
+      }
       this.photoMap[photo.id] = photo
     })
   }

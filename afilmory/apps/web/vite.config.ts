@@ -67,8 +67,6 @@ const staticWebBuildPlugins: PluginOption[] = [
   siteConfigInjectPlugin(),
   photosStaticPlugin(),
   VitePWA({
-    base: '/',
-    scope: '/',
     registerType: 'autoUpdate',
     includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
     manifest: {
@@ -78,8 +76,8 @@ const staticWebBuildPlugins: PluginOption[] = [
       theme_color: '#f5f5f5',
       background_color: '#f5f5f5',
       display: 'standalone',
-      scope: '/',
-      start_url: '/',
+      scope: '.',
+      start_url: '.',
       icons: [
         {
           src: 'android-chrome-192x192.png',

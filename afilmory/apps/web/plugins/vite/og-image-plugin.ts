@@ -20,9 +20,13 @@ export function ogImagePlugin(options: OGImagePluginOptions = {}): Plugin {
   } = options
 
   let ogImagePath = ''
+  let basePath = '/'
 
   return {
     name: 'og-image-plugin',
+    configResolved(config) {
+      basePath = config.base
+    },
     async buildStart() {
       // 在构建开始时生成 OG 图片
       const timestamp = Date.now()
@@ -40,7 +44,7 @@ export function ogImagePlugin(options: OGImagePluginOptions = {}): Plugin {
           includePhotos: true,
           photoCount: 4,
         })
-        ogImagePath = `/${fileName}`
+        ogImagePath = `${basePath}${fileName}`
         console.info(`🖼️  OG image generated: ${ogImagePath}`)
 
         // 清理旧的 OG 图片
@@ -83,11 +87,10 @@ export function ogImagePlugin(options: OGImagePluginOptions = {}): Plugin {
     <meta name="msapplication-TileColor" content="#0a0a0a" />
     
     <!-- Favicon and app icons -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-            <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="${basePath}apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="${basePath}favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="${basePath}favicon-16x16.png" />
+    <link rel="shortcut icon" href="${basePath}favicon.ico" />
         `
 
         // 在 </head> 标签前插入 meta 标签
