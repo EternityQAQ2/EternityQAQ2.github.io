@@ -982,19 +982,20 @@ export class WebGLImageViewerEngine extends ImageViewerEngineBase {
     const tileWidthInImage = this.imageWidth / cols
     const tileHeightInImage = this.imageHeight / rows
 
-    // 瓦片在原图中的边界
+    // 瓦片在原图中的边界 — 使用乘法计算以保持浮点一致性：
+    // (tileX+1)*w 与下一个 tile 的 tileX*w 完全相等，避免累加引入的 1ULP 偏差
     const tileLeftInImage = tileX * tileWidthInImage
     const tileTopInImage = tileY * tileHeightInImage
-    const tileRightInImage = Math.min(this.imageWidth, tileLeftInImage + tileWidthInImage)
-    const tileBottomInImage = Math.min(this.imageHeight, tileTopInImage + tileHeightInImage)
+    const tileRightInImage = Math.min(this.imageWidth, (tileX + 1) * tileWidthInImage)
+    const tileBottomInImage = Math.min(this.imageHeight, (tileY + 1) * tileHeightInImage)
 
     // 瓦片的实际尺寸（处理边界情况）
     const actualTileWidth = tileRightInImage - tileLeftInImage
     const actualTileHeight = tileBottomInImage - tileTopInImage
 
     // 瓦片中心在原图中的位置
-    const tileCenterInImageX = tileLeftInImage + actualTileWidth / 2
-    const tileCenterInImageY = tileTopInImage + actualTileHeight / 2
+    const tileCenterInImageX = (tileLeftInImage + tileRightInImage) / 2
+    const tileCenterInImageY = (tileTopInImage + tileBottomInImage) / 2
 
     // 将瓦片中心转换到相对于图像中心的坐标
     const tileCenterRelativeX = tileCenterInImageX - this.imageWidth / 2
@@ -1015,9 +1016,16 @@ export class WebGLImageViewerEngine extends ImageViewerEngineBase {
     const translateX = (tileCenterInCanvasX * 2) / this.canvasWidth - 1
     const translateY = -((tileCenterInCanvasY * 2) / this.canvasHeight - 1)
 
-    // 0.1% overlap per side eliminates GPU rasterization gaps between adjacent tile quads
-    const BLEED = 1.001
-    return new Float32Array([scaleX * BLEED, 0, 0, 0, scaleY * BLEED, 0, translateX, translateY, 1])
+    // 将每个瓦片扩大 1 个物理像素（硬件像素，考虑 devicePixelRatio），
+    // 使相邻瓦片产生 sub-pixel 级别的重叠，消除 GPU 独立光栅化导致的间隙。
+    // 使用固定像素而非比例系数，确保在任何缩放级别下重叠不超过 1px。
+    const PIXEL_OVERLAP_X = 1.0 / this.canvas.width
+    const PIXEL_OVERLAP_Y = 1.0 / this.canvas.height
+    return new Float32Array([
+      scaleX + PIXEL_OVERLAP_X, 0, 0,
+      0, scaleY + PIXEL_OVERLAP_Y, 0,
+      translateX, translateY, 1,
+    ])
   }
 
   // 添加瓦片更新时间追踪
