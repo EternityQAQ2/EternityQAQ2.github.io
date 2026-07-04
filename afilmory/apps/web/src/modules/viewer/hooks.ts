@@ -142,6 +142,16 @@ export const useImageLoader = (
     setIsHighResImageRendered,
   ])
 
+  // 当图片不再是当前图片时，重置加载状态
+  // 防止切回时使用已被 LRU 缓存淘汰的 blob URL
+  useEffect(() => {
+    if (!isCurrentImage) {
+      setHighResLoaded?.(false)
+      setBlobSrc?.(null)
+      setError?.(false)
+    }
+  }, [isCurrentImage, setHighResLoaded, setBlobSrc, setError])
+
   return imageLoaderManagerRef
 }
 

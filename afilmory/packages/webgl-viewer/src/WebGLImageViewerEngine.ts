@@ -417,7 +417,8 @@ export class WebGLImageViewerEngine extends ImageViewerEngineBase {
       this.isLoadingTexture = false
       this.notifyLoadingStateChange(false)
       if (this.loadImageReject) {
-        this.loadImageReject(new Error('Failed to load image in worker'))
+        const errMsg = payload?.error || 'Failed to load image in worker'
+        this.loadImageReject(new Error(errMsg))
       }
       return
     }
@@ -473,6 +474,13 @@ export class WebGLImageViewerEngine extends ImageViewerEngineBase {
       const { key, error } = payload
       console.warn(`Worker failed to create tile: ${key}`, error)
       this.loadingTiles.delete(key)
+      // Re-queue after 2s if tile is still visible — one-shot retry with backoff
+      setTimeout(() => {
+        if (!this.tileCache.has(key) && this.currentVisibleTiles.has(key)) {
+          this.pendingTileRequests.push({ key, priority: Number.MAX_SAFE_INTEGER })
+          this.processPendingTileRequests()
+        }
+      }, 2000)
     }
   }
 
@@ -1007,7 +1015,9 @@ export class WebGLImageViewerEngine extends ImageViewerEngineBase {
     const translateX = (tileCenterInCanvasX * 2) / this.canvasWidth - 1
     const translateY = -((tileCenterInCanvasY * 2) / this.canvasHeight - 1)
 
-    return new Float32Array([scaleX, 0, 0, 0, scaleY, 0, translateX, translateY, 1])
+    // 0.1% overlap per side eliminates GPU rasterization gaps between adjacent tile quads
+    const BLEED = 1.001
+    return new Float32Array([scaleX * BLEED, 0, 0, 0, scaleY * BLEED, 0, translateX, translateY, 1])
   }
 
   // 添加瓦片更新时间追踪

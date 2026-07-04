@@ -65,8 +65,8 @@ self.onmessage = async (e) => {
           [initialLODBitmap],
         )
       } catch (error) {
-        console.error('[Worker] Error loading image:', error)
-        self.postMessage({ type: 'load-error', payload: { error } })
+        console.error('[Worker] Error loading image:', error, { url })
+        self.postMessage({ type: 'load-error', payload: { error: String(error) } })
       }
       break
     }

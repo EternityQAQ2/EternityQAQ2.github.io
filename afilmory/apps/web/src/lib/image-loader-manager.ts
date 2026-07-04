@@ -43,23 +43,16 @@ export interface ImageCacheResult {
 }
 
 // Regular image cache using LRU cache
+// Capacity set high to cover Swiper virtual buffer — prevents blob URL
+// revocation while worker may still be processing adjacent images.
 const regularImageCache: LRUCache<string, ImageCacheResult> = new LRUCache<string, ImageCacheResult>(
-  30, // Cache size for regular images — larger to prevent eviction during WebGL worker processing
+  60,
   (value, key, reason) => {
-    try {
-      // Delay revocation by a microtask to let any pending worker fetch complete
-      queueMicrotask(() => {
-        try {
-          URL.revokeObjectURL(value.blobSrc)
-          console.info(`Regular image cache: Revoked blob URL - ${reason}`)
-        } catch {
-          // Ignore revocation errors
-        }
-      })
-    } catch {
-      // Fallback: revoke synchronously
+    // Delay 500ms before revoking to give Web Worker enough time
+    // to complete any in-flight fetch on this blob URL.
+    setTimeout(() => {
       try { URL.revokeObjectURL(value.blobSrc) } catch {}
-    }
+    }, 500)
   },
 )
 
