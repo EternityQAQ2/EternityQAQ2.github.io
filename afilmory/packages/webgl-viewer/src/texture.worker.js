@@ -27,7 +27,12 @@ self.onmessage = async (e) => {
       const { url } = payload
       try {
         console.info('[Worker] Fetching image:', url)
-        const response = await fetch(url, { mode: 'cors' })
+        // blob: URLs are same-origin and don't need CORS; other URLs may need it
+        const isBlobUrl = url.startsWith('blob:')
+        const response = await fetch(url, isBlobUrl ? {} : { mode: 'cors' })
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status} ${response.statusText}`)
+        }
         const blob = await response.blob()
         originalImage = await createImageBitmap(blob)
 
@@ -72,7 +77,8 @@ self.onmessage = async (e) => {
     }
     case 'create-tile': {
       if (!originalImage) {
-        console.warn('Worker has not been initialized with an image.')
+        console.warn('Worker has not been initialized with an image.', { key })
+        self.postMessage({ type: 'tile-error', payload: { key, error: 'Worker not initialized' } })
         return
       }
 

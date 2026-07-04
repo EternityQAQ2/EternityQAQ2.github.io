@@ -239,8 +239,8 @@ export const WebGLImageViewer = ({
           outline: 'none',
           margin: 0,
           padding: 0,
-          // 对于像素艺术和小图片保持锐利，使用最新的标准属性
-          imageRendering: 'pixelated',
+          // 照片需要平滑渲染，pixelated 会导致瓦片边界出现锯齿状的水平线
+          imageRendering: 'auto',
         }}
       />
       {debug && (

@@ -109,6 +109,11 @@ export class WebGLImageViewerEngine extends ImageViewerEngineBase {
   private solidColorLocation!: WebGLUniformLocation
   private tileOutlineEnabled = false
 
+  // WebGL 上下文丢失处理
+  private contextLost = false
+  private boundContextLost: (e: Event) => void
+  private boundContextRestored: () => void
+
   // 事件处理器绑定
   private boundHandleMouseDown: (e: MouseEvent) => void
   private boundHandleMouseMove: (e: MouseEvent) => void
@@ -169,6 +174,22 @@ export class WebGLImageViewerEngine extends ImageViewerEngineBase {
     this.boundHandleTouchMove = (e: TouchEvent) => this.handleTouchMove(e)
     this.boundHandleTouchEnd = (e: TouchEvent) => this.handleTouchEnd(e)
     this.boundResizeCanvas = () => this.resizeCanvas()
+    this.boundContextLost = (e: Event) => {
+      e.preventDefault()
+      this.contextLost = true
+      console.warn('[WebGL] Context lost — rendering suspended')
+    }
+    this.boundContextRestored = () => {
+      this.contextLost = false
+      console.info('[WebGL] Context restored')
+      // Context lost resets all GL state — re-initialize
+      try {
+        this.initWebGL()
+        this.render()
+      } catch (err) {
+        console.error('[WebGL] Failed to reinitialize after context restore:', err)
+      }
+    }
 
     this.setupCanvas()
     this.initWebGL()
@@ -883,7 +904,7 @@ export class WebGLImageViewerEngine extends ImageViewerEngineBase {
   private render() {
     const { gl } = this
 
-    if (!this.positionBuffer || !this.texCoordBuffer) {
+    if (!this.positionBuffer || !this.texCoordBuffer || this.contextLost) {
       return
     }
 
@@ -894,24 +915,21 @@ export class WebGLImageViewerEngine extends ImageViewerEngineBase {
     this.bindQuadBuffers()
     gl.uniform1i(this.renderModeLocation, 0)
 
-    // 始终渲染一个低分辨率的底图作为回退，防止瓦片加载过程中出现空白
-    if (this.texture) {
-      gl.uniformMatrix3fv(this.matrixLocation, false, this.createMatrix())
-      gl.uniform1i(this.imageLocation, 0)
-      gl.activeTexture(gl.TEXTURE0)
-      gl.bindTexture(gl.TEXTURE_2D, this.texture)
-      gl.drawArrays(gl.TRIANGLES, 0, 6)
-    }
-
     // 渲染可见的瓦片
     const lodLevel = this.selectOptimalLOD()
     const outlinedTileMatrices: Float32Array[] = []
+
+    const { cols, rows } = this.imageLoaded ? this.getTileGridSize(lodLevel) : { cols: 0, rows: 0 }
+    // 计算瓦片总数，判断当前等级的所有瓦片是否都已加载
+    const totalTilesAtLOD = cols * rows
+    let loadedTilesAtLOD = 0
 
     for (const tileKey of this.currentVisibleTiles) {
       const tileInfo = this.tileCache.get(tileKey)
       if (!tileInfo || !tileInfo.texture || tileInfo.lodLevel !== lodLevel) {
         continue
       }
+      loadedTilesAtLOD++
 
       // 计算瓦片的渲染变换矩阵
       const tileMatrix = this.createTileMatrix(tileInfo.x, tileInfo.y, tileInfo.lodLevel)
@@ -924,6 +942,16 @@ export class WebGLImageViewerEngine extends ImageViewerEngineBase {
       if (this.tileOutlineEnabled) {
         outlinedTileMatrices.push(tileMatrix)
       }
+    }
+
+    // 底图作为回退：只在没有瓦片加载时渲染，避免瓦片间隙露出底图产生水平线
+    // 当有任意瓦片已加载时，不渲染底图，让瓦片完全覆盖
+    if (this.texture && loadedTilesAtLOD === 0) {
+      gl.uniformMatrix3fv(this.matrixLocation, false, this.createMatrix())
+      gl.uniform1i(this.imageLocation, 0)
+      gl.activeTexture(gl.TEXTURE0)
+      gl.bindTexture(gl.TEXTURE_2D, this.texture)
+      gl.drawArrays(gl.TRIANGLES, 0, 6)
     }
 
     this.drawTileOutlines(outlinedTileMatrices)
@@ -1058,6 +1086,8 @@ export class WebGLImageViewerEngine extends ImageViewerEngineBase {
     this.canvas.removeEventListener('touchstart', this.boundHandleTouchStart)
     this.canvas.removeEventListener('touchmove', this.boundHandleTouchMove)
     this.canvas.removeEventListener('touchend', this.boundHandleTouchEnd)
+    this.canvas.removeEventListener('webglcontextlost', this.boundContextLost)
+    this.canvas.removeEventListener('webglcontextrestored', this.boundContextRestored)
 
     // 清理 WebGL 资源
     this.cleanupLODTextures()
@@ -1181,6 +1211,8 @@ export class WebGLImageViewerEngine extends ImageViewerEngineBase {
     this.canvas.addEventListener('touchstart', this.boundHandleTouchStart)
     this.canvas.addEventListener('touchmove', this.boundHandleTouchMove)
     this.canvas.addEventListener('touchend', this.boundHandleTouchEnd)
+    this.canvas.addEventListener('webglcontextlost', this.boundContextLost)
+    this.canvas.addEventListener('webglcontextrestored', this.boundContextRestored)
   }
 
   private handleMouseDown(e: MouseEvent) {

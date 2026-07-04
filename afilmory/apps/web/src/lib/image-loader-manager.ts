@@ -44,13 +44,21 @@ export interface ImageCacheResult {
 
 // Regular image cache using LRU cache
 const regularImageCache: LRUCache<string, ImageCacheResult> = new LRUCache<string, ImageCacheResult>(
-  10, // Cache size for regular images
+  30, // Cache size for regular images — larger to prevent eviction during WebGL worker processing
   (value, key, reason) => {
     try {
-      URL.revokeObjectURL(value.blobSrc)
-      console.info(`Regular image cache: Revoked blob URL - ${reason}`)
-    } catch (error) {
-      console.warn(`Failed to revoke regular image blob URL (${reason}):`, error)
+      // Delay revocation by a microtask to let any pending worker fetch complete
+      queueMicrotask(() => {
+        try {
+          URL.revokeObjectURL(value.blobSrc)
+          console.info(`Regular image cache: Revoked blob URL - ${reason}`)
+        } catch {
+          // Ignore revocation errors
+        }
+      })
+    } catch {
+      // Fallback: revoke synchronously
+      try { URL.revokeObjectURL(value.blobSrc) } catch {}
     }
   },
 )

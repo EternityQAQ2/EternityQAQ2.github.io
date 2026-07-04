@@ -18,17 +18,31 @@ export function ErrorElement() {
     console.error('Error handled by React Router default ErrorBoundary:', error)
   }, [error])
 
-  const reloadRef = useRef(false)
-  if (
-    message.startsWith('Failed to fetch dynamically imported module') &&
-    window.sessionStorage.getItem('reload') !== '1'
-  ) {
-    if (reloadRef.current) return null
-    window.sessionStorage.setItem('reload', '1')
-    window.location.reload()
-    reloadRef.current = true
-    return null
-  }
+  // 动态导入失败时自动重试一次（可能由于 Service Worker 缓存过期导致）
+  // 使用 useEffect 确保在渲染提交后执行，避免在渲染阶段调用 reload
+  useEffect(() => {
+    if (
+      message.startsWith('Failed to fetch dynamically imported module') &&
+      window.sessionStorage.getItem('__reload_attempted__') !== '1'
+    ) {
+      window.sessionStorage.setItem('__reload_attempted__', '1')
+      // 延迟100ms以确保当前渲染提交完成
+      const id = setTimeout(() => {
+        window.location.reload()
+      }, 100)
+      return () => clearTimeout(id)
+    }
+  }, [message])
+
+  // 页面加载后清除重试标记，以便下次出错时可以再次重试
+  useEffect(() => {
+    if (window.sessionStorage.getItem('__reload_attempted__') === '1') {
+      const id = setTimeout(() => {
+        window.sessionStorage.removeItem('__reload_attempted__')
+      }, 5000)
+      return () => clearTimeout(id)
+    }
+  }, [])
 
   return (
     <div className="flex min-h-screen flex-col">
