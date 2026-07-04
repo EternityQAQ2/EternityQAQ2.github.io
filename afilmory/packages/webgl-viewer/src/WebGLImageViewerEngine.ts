@@ -484,7 +484,7 @@ export class WebGLImageViewerEngine extends ImageViewerEngineBase {
     }
   }
 
-  async loadImage(url: string, preknownWidth?: number, preknownHeight?: number) {
+  async loadImage(url: string, preknownWidth?: number, preknownHeight?: number, imageBlob?: Blob) {
     this.originalImageSrc = url
     this.isLoadingTexture = true
     this.notifyLoadingStateChange(true, LoadingState.IMAGE_LOADING)
@@ -500,10 +500,19 @@ export class WebGLImageViewerEngine extends ImageViewerEngineBase {
       this.loadImageReject = reject
 
       console.info('[Engine] Posting "load-image" to worker', this.worker)
-      this.worker?.postMessage({
-        type: 'load-image',
-        payload: { url },
-      })
+      // 如果有 Blob，直接传给 Worker 避免 blob URL fetch 竞态
+      // Blob 通过结构化克隆传递，无生命周期问题
+      if (imageBlob) {
+        this.worker?.postMessage({
+          type: 'load-image',
+          payload: { imageBlob },
+        })
+      } else {
+        this.worker?.postMessage({
+          type: 'load-image',
+          payload: { url },
+        })
+      }
     })
   }
 

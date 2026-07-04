@@ -73,6 +73,7 @@ export interface LivePhotoBadgeProps {
 
 export interface ProgressiveImageState {
   blobSrc: string | null
+  imageBlob: Blob | null
   highResLoaded: boolean
   error: boolean
   isHighResImageRendered: boolean

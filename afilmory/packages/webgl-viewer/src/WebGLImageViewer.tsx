@@ -25,6 +25,7 @@ import { WebGLImageViewerEngine } from './WebGLImageViewerEngine'
 export const WebGLImageViewer = ({
   ref,
   src,
+  imageBlob,
   className = '',
   width,
   height,
@@ -45,8 +46,9 @@ export const WebGLImageViewer = ({
   onLoadingStateChange,
   debug = false,
   ...divProps
-}: WebGLImageViewerProps &
-  Omit<React.HTMLAttributes<HTMLDivElement>, 'className'> & {
+}: WebGLImageViewerProps & {
+  imageBlob?: Blob
+} & Omit<React.HTMLAttributes<HTMLDivElement>, 'className'> & {
     ref?: React.RefObject<WebGLImageViewerRef | null>
   }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -175,7 +177,8 @@ export const WebGLImageViewer = ({
       // 如果提供了尺寸，传递给loadImage进行优化
       const preknownWidth = width && width > 0 ? width : undefined
       const preknownHeight = height && height > 0 ? height : undefined
-      webGLImageViewerEngine.loadImage(src, preknownWidth, preknownHeight).catch(console.error)
+      // 传递 imageBlob（若有）：Worker 直接处理 Blob，避免 blob URL 竞态
+      webGLImageViewerEngine.loadImage(src, preknownWidth, preknownHeight, imageBlob).catch(console.error)
       viewerRef.current = webGLImageViewerEngine
       setTileOutlineEnabled(webGLImageViewerEngine.isTileOutlineEnabled())
     } catch (error) {

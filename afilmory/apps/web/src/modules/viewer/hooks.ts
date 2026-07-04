@@ -17,6 +17,7 @@ export const useProgressiveImageState = (): [
   ProgressiveImageState,
   {
     setBlobSrc: (src: string | null) => void
+    setImageBlob: (blob: Blob | null) => void
     setHighResLoaded: (loaded: boolean) => void
     setError: (error: boolean) => void
     setIsHighResImageRendered: (rendered: boolean) => void
@@ -27,6 +28,7 @@ export const useProgressiveImageState = (): [
   },
 ] => {
   const [blobSrc, setBlobSrc] = useState<string | null>(null)
+  const [imageBlob, setImageBlob] = useState<Blob | null>(null)
   const [highResLoaded, setHighResLoaded] = useState(false)
   const [error, setError] = useState(false)
   const [isHighResImageRendered, setIsHighResImageRendered] = useState(false)
@@ -38,6 +40,7 @@ export const useProgressiveImageState = (): [
   return [
     {
       blobSrc,
+      imageBlob,
       highResLoaded,
       error,
       isHighResImageRendered,
@@ -48,6 +51,7 @@ export const useProgressiveImageState = (): [
     },
     {
       setBlobSrc,
+      setImageBlob,
       setHighResLoaded,
       setError,
       setIsHighResImageRendered,
@@ -69,6 +73,7 @@ export const useImageLoader = (
   onBlobSrcChange?: (blobSrc: string | null) => void,
   loadingIndicatorRef?: React.RefObject<LoadingIndicatorRef | null>,
   setBlobSrc?: (src: string | null) => void,
+  setImageBlob?: (blob: Blob | null) => void,
   setHighResLoaded?: (loaded: boolean) => void,
   setError?: (error: boolean) => void,
   setIsHighResImageRendered?: (rendered: boolean) => void,
@@ -86,6 +91,7 @@ export const useImageLoader = (
     function cleanup() {
       setHighResLoaded?.(false)
       setBlobSrc?.(null)
+      setImageBlob?.(null)
       setError?.(false)
       onBlobSrcChange?.(null)
       setIsHighResImageRendered?.(false)
@@ -105,6 +111,7 @@ export const useImageLoader = (
         })
 
         setBlobSrc?.(result.blobSrc)
+        setImageBlob?.(result.blob ?? null)
         onBlobSrcChange?.(result.blobSrc)
         setHighResLoaded?.(true)
       } catch (loadError) {
@@ -148,9 +155,10 @@ export const useImageLoader = (
     if (!isCurrentImage) {
       setHighResLoaded?.(false)
       setBlobSrc?.(null)
+      setImageBlob?.(null)
       setError?.(false)
     }
-  }, [isCurrentImage, setHighResLoaded, setBlobSrc, setError])
+  }, [isCurrentImage, setHighResLoaded, setBlobSrc, setImageBlob, setError])
 
   return imageLoaderManagerRef
 }

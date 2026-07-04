@@ -96,6 +96,7 @@ export const ProgressiveImage = ({
     onBlobSrcChange,
     loadingIndicatorRef,
     setState.setBlobSrc,
+    setState.setImageBlob,
     setState.setHighResLoaded,
     setState.setError,
     setState.setIsHighResImageRendered,
@@ -251,6 +252,7 @@ export const ProgressiveImage = ({
             <WebGLImageViewer
               ref={webglImageViewerRef}
               src={blobSrc}
+              imageBlob={state.imageBlob || undefined}
               className="absolute inset-0 h-full w-full"
               width={width}
               height={height}

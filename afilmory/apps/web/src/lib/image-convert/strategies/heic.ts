@@ -151,6 +151,7 @@ export async function convertHeicImage(
       originalSize: file.size,
       convertedSize: convertedBlob.size,
       format,
+      blob: convertedBlob,
     }
 
     // 缓存结果

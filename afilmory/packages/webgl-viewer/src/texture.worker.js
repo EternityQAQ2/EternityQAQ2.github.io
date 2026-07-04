@@ -24,50 +24,68 @@ self.onmessage = async (e) => {
 
   switch (type) {
     case 'load-image': {
-      const { url } = payload
-      try {
-        console.info('[Worker] Fetching image:', url)
-        // blob: URLs are same-origin and don't need CORS; other URLs may need it
-        const isBlobUrl = url.startsWith('blob:')
-        const response = await fetch(url, isBlobUrl ? {} : { mode: 'cors' })
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status} ${response.statusText}`)
+      const { imageBlob, url } = payload
+
+      // 优先使用直接传递的 Blob（主线程已解码），避免 blob URL 竞态
+      if (imageBlob) {
+        try {
+          console.info('[Worker] Decoding Blob directly (no fetch needed)')
+          originalImage = await createImageBitmap(imageBlob)
+        } catch (error) {
+          console.error('[Worker] Error decoding Blob:', error)
+          self.postMessage({ type: 'load-error', payload: { error: String(error) } })
+          break
         }
-        const blob = await response.blob()
-        originalImage = await createImageBitmap(blob)
-
-        console.info('[Worker] Image decoded, posting init-done')
-        self.postMessage({ type: 'init-done' })
-
-        // Create initial LOD texture
-        const lodLevel = 1 // Initial LOD level
-        const lodConfig = WORKER_SIMPLE_LOD_LEVELS[lodLevel]
-        const finalWidth = Math.max(1, Math.round(originalImage.width * lodConfig.scale))
-        const finalHeight = Math.max(1, Math.round(originalImage.height * lodConfig.scale))
-
-        const initialLODBitmap = await createImageBitmap(originalImage, {
-          resizeWidth: finalWidth,
-          resizeHeight: finalHeight,
-          resizeQuality: 'medium',
-        })
-
-        console.info('[Worker] Initial LOD created, posting image-loaded')
-        self.postMessage(
-          {
-            type: 'image-loaded',
-            payload: {
-              imageBitmap: initialLODBitmap,
-              imageWidth: originalImage.width,
-              imageHeight: originalImage.height,
-              lodLevel,
-            },
-          },
-          [initialLODBitmap],
-        )
-      } catch (error) {
-        console.error('[Worker] Error loading image:', error, { url })
-        self.postMessage({ type: 'load-error', payload: { error: String(error) } })
+      } else if (url) {
+        try {
+          console.info('[Worker] Fetching image:', url)
+          // blob: URLs are same-origin and don't need CORS; other URLs may need it
+          const isBlobUrl = url.startsWith('blob:')
+          const response = await fetch(url, isBlobUrl ? {} : { mode: 'cors' })
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status} ${response.statusText}`)
+          }
+          const blob = await response.blob()
+          originalImage = await createImageBitmap(blob)
+        } catch (error) {
+          console.error('[Worker] Error loading image:', error, { url })
+          self.postMessage({ type: 'load-error', payload: { error: String(error) } })
+          break
+        }
+      } else {
+        console.error('[Worker] load-image received without imageBlob or url')
+        self.postMessage({ type: 'load-error', payload: { error: 'No image data provided' } })
+        break
       }
+
+      console.info('[Worker] Image decoded, posting init-done')
+      self.postMessage({ type: 'init-done' })
+
+      // Create initial LOD texture
+      const lodLevel = 1 // Initial LOD level
+      const lodConfig = WORKER_SIMPLE_LOD_LEVELS[lodLevel]
+      const finalWidth = Math.max(1, Math.round(originalImage.width * lodConfig.scale))
+      const finalHeight = Math.max(1, Math.round(originalImage.height * lodConfig.scale))
+
+      const initialLODBitmap = await createImageBitmap(originalImage, {
+        resizeWidth: finalWidth,
+        resizeHeight: finalHeight,
+        resizeQuality: 'medium',
+      })
+
+      console.info('[Worker] Initial LOD created, posting image-loaded')
+      self.postMessage(
+        {
+          type: 'image-loaded',
+          payload: {
+            imageBitmap: initialLODBitmap,
+            imageWidth: originalImage.width,
+            imageHeight: originalImage.height,
+            lodLevel,
+          },
+        },
+        [initialLODBitmap],
+      )
       break
     }
     case 'init': {

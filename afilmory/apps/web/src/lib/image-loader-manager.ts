@@ -29,6 +29,7 @@ export interface LoadingCallbacks {
 export interface ImageLoadResult {
   blobSrc: string
   convertedUrl?: string
+  blob?: Blob // 可选的原始 Blob，用于直接传给 Worker 避免 fetch
 }
 
 export interface VideoProcessResult {
@@ -293,6 +294,7 @@ export class ImageLoaderManager {
         return {
           blobSrc: conversionResult.url,
           convertedUrl: conversionResult.url,
+          blob: conversionResult.blob || blob,
         }
       } else {
         // 不需要转换的普通图片
@@ -364,6 +366,7 @@ export class ImageLoaderManager {
 
     return {
       blobSrc: url,
+      blob,
     }
   }
 

@@ -6,6 +6,7 @@ export interface ConversionResult {
   convertedSize: number
   format: string
   originalSize: number
+  blob?: Blob // 转换后的 Blob，避免 Worker 重新 fetch blob URL
 }
 
 // 图像转换策略接口
