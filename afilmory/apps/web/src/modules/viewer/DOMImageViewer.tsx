@@ -150,6 +150,10 @@ export const DOMImageViewer: FC<DOMImageViewerProps> = ({
             loading="eager"
             decoding="async"
             onLoad={onLoad}
+            style={{
+              backfaceVisibility: 'hidden',
+              transform: 'translateZ(0)',
+            }}
           />
           {children}
         </TransformComponent>

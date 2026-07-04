@@ -239,8 +239,11 @@ export const WebGLImageViewer = ({
           outline: 'none',
           margin: 0,
           padding: 0,
-          // 照片需要平滑渲染，pixelated 会导致瓦片边界出现锯齿状的水平线
           imageRendering: 'auto',
+          // 强制创建独立 GPU 合成层，防止浏览器把 canvas 拆分到多个 texture tile
+          // 避免在 tile 边界出现 1px 白线 (Chrome compositor bug)
+          backfaceVisibility: 'hidden',
+          transform: 'translateZ(0)',
         }}
       />
       {debug && (

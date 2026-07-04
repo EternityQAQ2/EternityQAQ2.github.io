@@ -186,7 +186,8 @@ export const ProgressiveImage = ({
 
   return (
     <div
-      className={clsxm('relative overflow-hidden', className)}
+      className={clsxm('relative', className)}
+      style={{ overflow: 'clip' }}
       onMouseDown={handleLongPressStart}
       onMouseUp={handleLongPressEnd}
       onMouseLeave={handleLongPressEnd}
