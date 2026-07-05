@@ -117,7 +117,7 @@ export class ImageLoaderManager {
       this.delayTimer = setTimeout(async () => {
         const xhr = new XMLHttpRequest()
         xhr.open('GET', src)
-        xhr.responseType = 'blob'
+        xhr.responseType = 'arraybuffer'
 
         xhr.onload = async () => {
           if (xhr.status === 200) {
@@ -135,8 +135,9 @@ export class ImageLoaderManager {
                 'Accept-Ranges': acceptRanges,
               })
 
-              // 验证响应是否为图片
-              const blob = xhr.response as Blob
+              // 从 ArrayBuffer 创建独立 Blob，不与 XHR 生命周期绑定
+              const rawBuffer = xhr.response as ArrayBuffer
+              const blob = new Blob([rawBuffer], { type: contentType || 'image/jpeg' })
               if (!(await this.isValidImageBlob(blob))) {
                 onLoadingStateUpdate?.({
                   isVisible: false,
