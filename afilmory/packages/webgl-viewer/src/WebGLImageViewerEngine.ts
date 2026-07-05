@@ -139,6 +139,21 @@ export class WebGLImageViewerEngine extends ImageViewerEngineBase {
   private loadImageResolve: (() => void) | null = null
   private loadImageReject: ((error: Error) => void) | null = null
 
+  // === DIAGNOSTIC: store blob for main thread decode test on worker failure ===
+  private pendingImageBlob: Blob | null = null
+  private diagnosticResults: Array<{
+    url: string
+    blobType: string
+    blobSize: number
+    jpegHeader: string
+    workerResult: 'PASS' | 'FAIL'
+    mainThreadResult: 'PASS' | 'FAIL' | 'SKIPPED'
+    mainThreadError?: string
+    workerError?: string
+    imageWidth?: number
+    imageHeight?: number
+  }> = []
+
   constructor(
     canvas: HTMLCanvasElement,
     config: Required<WebGLImageViewerProps>,
@@ -374,6 +389,58 @@ export class WebGLImageViewerEngine extends ImageViewerEngineBase {
   private handleWorkerMessage(e: MessageEvent) {
     const { type, payload } = e.data
 
+    // === DIAGNOSTIC: handle debug-blob messages from worker ===
+    if (type === 'debug-blob') {
+      const { bytes, blobType, blobSize, error: workerErr } = payload || {}
+      console.info('[Engine] === DIAGNOSTIC: Received debug-blob from worker ===', {
+        blobType,
+        blobSize: `${(blobSize / 1024).toFixed(1)}KB`,
+        workerError: workerErr,
+        bytesLength: bytes?.byteLength,
+      })
+
+      if (bytes) {
+        // Reconstruct blob and download for inspection
+        const debugBlob = new Blob([bytes], { type: blobType || 'application/octet-stream' })
+        const debugUrl = URL.createObjectURL(debugBlob)
+        const a = document.createElement('a')
+        a.href = debugUrl
+        a.download = 'debug-worker-blob.bin'
+        a.style.display = 'none'
+        document.body.appendChild(a)
+        console.info('[Engine] Download debug blob:', a.download, debugUrl)
+        // Not auto-clicking — user can trigger via console if needed
+
+        // Test main thread decode immediately
+        this.testMainThreadDecode(debugBlob, '').then((dim) => {
+          console.info('[Engine] === DIAGNOSTIC RESULT ===')
+          console.info('  Worker createImageBitmap: FAIL')
+          console.info('  Main thread createImageBitmap: PASS')
+          console.info('  Image dimensions:', dim.width, 'x', dim.height)
+          console.info('  Conclusion: Worker environment issue (blob is valid)')
+
+          // Log full diagnostic summary
+          console.group('[Engine] Full diagnostic summary')
+          console.log('Blob.type:', blobType)
+          console.log('Blob.size:', blobSize)
+          console.log('Worker createImageBitmap: FAIL —', workerErr)
+          console.log('Main thread createImageBitmap: PASS')
+          console.log('Image.width:', dim.width)
+          console.log('Image.height:', dim.height)
+          console.groupEnd()
+        }).catch(() => {
+          console.info('[Engine] === DIAGNOSTIC RESULT ===')
+          console.info('  Worker createImageBitmap: FAIL')
+          console.info('  Main thread createImageBitmap: FAIL')
+          console.info('  Conclusion: Blob content is corrupted (both fail)')
+        }).finally(() => {
+          URL.revokeObjectURL(debugUrl)
+          document.body.removeChild(a)
+        })
+      }
+      return
+    }
+
     if (type === 'image-loaded') {
       const { imageBitmap, imageWidth, imageHeight, lodLevel } = payload
       try {
@@ -416,6 +483,27 @@ export class WebGLImageViewerEngine extends ImageViewerEngineBase {
     if (type === 'load-error') {
       this.isLoadingTexture = false
       this.notifyLoadingStateChange(false)
+
+      // === DIAGNOSTIC: test main thread decode when worker fails ===
+      if (this.pendingImageBlob) {
+        console.info('[Engine] Worker failed — testing main thread decode...')
+        this.testMainThreadDecode(this.pendingImageBlob, this.originalImageSrc)
+          .then((dim) => {
+            console.info('[Engine] === DIAGNOSTIC RESULT ===')
+            console.info('  Worker createImageBitmap: FAIL')
+            console.info('  Main thread createImageBitmap: PASS')
+            console.info('  Image dimensions:', dim.width, 'x', dim.height)
+            console.info('  Conclusion: Worker environment issue or transfer corruption')
+          })
+          .catch(() => {
+            console.info('[Engine] === DIAGNOSTIC RESULT ===')
+            console.info('  Worker createImageBitmap: FAIL')
+            console.info('  Main thread createImageBitmap: FAIL')
+            console.info('  Conclusion: Blob content is corrupted')
+          })
+        this.pendingImageBlob = null
+      }
+
       if (this.loadImageReject) {
         const errMsg = payload?.error || 'Failed to load image in worker'
         this.loadImageReject(new Error(errMsg))
@@ -495,6 +583,9 @@ export class WebGLImageViewerEngine extends ImageViewerEngineBase {
       this.setupInitialScaling()
     }
 
+    // === DIAGNOSTIC: store blob for main thread decode test if worker fails ===
+    this.pendingImageBlob = imageBlob || null
+
     return new Promise<void>((resolve, reject) => {
       this.loadImageResolve = resolve
       this.loadImageReject = reject
@@ -503,11 +594,16 @@ export class WebGLImageViewerEngine extends ImageViewerEngineBase {
       // 如果有 Blob，直接传给 Worker 避免 blob URL fetch 竞态
       // Blob 通过结构化克隆传递，无生命周期问题
       if (imageBlob) {
+        console.info('[Engine] Sending imageBlob to worker:', {
+          type: imageBlob.type,
+          size: imageBlob.size,
+        })
         this.worker?.postMessage({
           type: 'load-image',
           payload: { imageBlob },
         })
       } else {
+        console.info('[Engine] Sending URL to worker:', url)
         this.worker?.postMessage({
           type: 'load-image',
           payload: { url },
@@ -522,6 +618,25 @@ export class WebGLImageViewerEngine extends ImageViewerEngineBase {
     } else {
       const fitToScreenScale = this.getFitToScreenScale()
       this.scale = fitToScreenScale * this.config.initialScale
+    }
+  }
+
+  // === DIAGNOSTIC: test createImageBitmap on main thread ===
+  private async testMainThreadDecode(blob: Blob, originalUrl: string) {
+    console.info('[Engine] === DIAGNOSTIC: Main thread decode test ===', {
+      type: blob.type,
+      size: blob.size,
+      url: originalUrl,
+    })
+    try {
+      const bitmap = await createImageBitmap(blob)
+      const result = { width: bitmap.width, height: bitmap.height }
+      bitmap.close()
+      console.info('[Engine] Main thread decode: PASS', result)
+      return result
+    } catch (error) {
+      console.error('[Engine] Main thread decode: FAIL', error)
+      throw error
     }
   }
 

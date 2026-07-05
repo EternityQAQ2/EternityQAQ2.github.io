@@ -122,6 +122,19 @@ export class ImageLoaderManager {
         xhr.onload = async () => {
           if (xhr.status === 200) {
             try {
+              // === DIAGNOSTIC: log response headers ===
+              const contentType = xhr.getResponseHeader('Content-Type')
+              const contentLength = xhr.getResponseHeader('Content-Length')
+              const contentEncoding = xhr.getResponseHeader('Content-Encoding')
+              const acceptRanges = xhr.getResponseHeader('Accept-Ranges')
+              console.info('[ImageLoader] Response headers:', {
+                url: src,
+                'Content-Type': contentType,
+                'Content-Length': contentLength,
+                'Content-Encoding': contentEncoding,
+                'Accept-Ranges': acceptRanges,
+              })
+
               // 验证响应是否为图片
               const blob = xhr.response as Blob
               if (!(await this.isValidImageBlob(blob))) {

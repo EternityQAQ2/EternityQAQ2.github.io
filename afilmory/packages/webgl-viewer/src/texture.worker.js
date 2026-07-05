@@ -28,11 +28,47 @@ self.onmessage = async (e) => {
 
       // 优先使用直接传递的 Blob（主线程已解码），避免 blob URL 竞态
       if (imageBlob) {
+        // === DIAGNOSTIC: verify imageBlob is a real Blob ===
+        console.info('[Worker] Blob type check:', {
+          isBlob: imageBlob instanceof Blob,
+          constructorName: imageBlob.constructor?.name,
+          type: imageBlob.type,
+          size: imageBlob.size,
+        })
+
+        // === DIAGNOSTIC: blob inspection before decode ===
+        try {
+          const u8 = new Uint8Array(await imageBlob.slice(0, 16).arrayBuffer())
+          const headerHex = [...u8].map((v) => v.toString(16).padStart(2, '0')).join(' ')
+          console.info('[Worker] Blob diagnostic:', {
+            type: imageBlob.type,
+            size: imageBlob.size,
+            headerHex,
+          })
+        } catch (diagErr) {
+          console.warn('[Worker] Blob diagnostic failed:', diagErr)
+        }
+
         try {
           console.info('[Worker] Decoding Blob directly (no fetch needed)')
           originalImage = await createImageBitmap(imageBlob)
         } catch (error) {
           console.error('[Worker] Error decoding Blob:', error)
+
+          // === DIAGNOSTIC: send blob bytes back to main thread for inspection ===
+          try {
+            const bytes = await imageBlob.arrayBuffer()
+            self.postMessage(
+              {
+                type: 'debug-blob',
+                payload: { bytes, blobType: imageBlob.type, blobSize: imageBlob.size, error: String(error) },
+              },
+              [bytes],
+            )
+          } catch (sendErr) {
+            console.warn('[Worker] Could not send debug blob to main:', sendErr)
+          }
+
           self.postMessage({ type: 'load-error', payload: { error: String(error) } })
           break
         }
@@ -46,6 +82,25 @@ self.onmessage = async (e) => {
             throw new Error(`HTTP ${response.status} ${response.statusText}`)
           }
           const blob = await response.blob()
+
+          // === DIAGNOSTIC: blob inspection before decode (URL fetch) ===
+          try {
+            const u8 = new Uint8Array(await blob.slice(0, 16).arrayBuffer())
+            const headerHex2 = [...u8].map((v) => v.toString(16).padStart(2, '0')).join(' ')
+            console.info('[Worker] Blob diagnostic (from URL):', {
+              type: blob.type,
+              size: blob.size,
+              headerHex: headerHex2,
+              url,
+              contentType: response.headers.get('Content-Type'),
+              contentLength: response.headers.get('Content-Length'),
+              contentEncoding: response.headers.get('Content-Encoding'),
+              acceptRanges: response.headers.get('Accept-Ranges'),
+            })
+          } catch (diagErr) {
+            console.warn('[Worker] Blob diagnostic (URL fetch) failed:', diagErr)
+          }
+
           originalImage = await createImageBitmap(blob)
         } catch (error) {
           console.error('[Worker] Error loading image:', error, { url })

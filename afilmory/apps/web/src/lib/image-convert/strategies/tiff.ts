@@ -36,6 +36,7 @@ export class TiffConverterStrategy implements ImageConverterStrategy {
         convertedSize: result.size,
         format: 'image/jpeg',
         originalSize: blob.size,
+        blob: result.blob,
       }
     } catch (error) {
       console.error('TIFF conversion failed:', error)
@@ -53,7 +54,7 @@ export class TiffConverterStrategy implements ImageConverterStrategy {
   }
 
   // 转换实现
-  private async convertTiffToJpeg(blob: Blob): Promise<{ url: string; size: number }> {
+  private async convertTiffToJpeg(blob: Blob): Promise<{ url: string; size: number; blob: Blob }> {
     try {
       // 动态导入 tiff 库
       const tiff = await import('tiff')
@@ -99,7 +100,7 @@ export class TiffConverterStrategy implements ImageConverterStrategy {
           (convertedBlob) => {
             if (convertedBlob) {
               const url = URL.createObjectURL(convertedBlob)
-              resolve({ url, size: convertedBlob.size })
+              resolve({ url, size: convertedBlob.size, blob: convertedBlob })
             } else {
               reject(new Error('Failed to convert TIFF to JPEG'))
             }

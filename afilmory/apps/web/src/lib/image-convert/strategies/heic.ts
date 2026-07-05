@@ -53,6 +53,7 @@ export class HeicConverterStrategy implements ImageConverterStrategy {
         convertedSize: result.convertedSize,
         format: result.format,
         originalSize: result.originalSize,
+        blob: result.blob,
       }
     } catch (error) {
       console.error('HEIC conversion failed:', error)
