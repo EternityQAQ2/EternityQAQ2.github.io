@@ -12,3 +12,4 @@ docs/.vuepress/public/gallery-app
 afilmory/node_modules
 afilmory/apps/web/dist
 afilmory/packages/webgl-viewer/dist
+afilmory/apps/web/public/photos
