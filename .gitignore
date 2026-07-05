@@ -11,3 +11,4 @@ docs/.vuepress/public/gallery-app
 # Afilmory build artifacts
 afilmory/node_modules
 afilmory/apps/web/dist
+afilmory/packages/webgl-viewer/dist
