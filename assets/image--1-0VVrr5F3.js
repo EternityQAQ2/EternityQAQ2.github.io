@@ -1,0 +1,1 @@
+var e=`/assets/archlinux-installguide/image--1.png`;export{e as t};
