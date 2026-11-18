@@ -28,7 +28,6 @@ import { useMobile } from '~/hooks/useMobile'
 import type { LoadingIndicatorRef } from '~/modules/inspector/LoadingIndicator'
 import { LoadingIndicator } from '~/modules/inspector/LoadingIndicator'
 import { PhotoInspector } from '~/modules/inspector/PhotoInspector'
-import { ShareModal } from '~/modules/social/ShareModal'
 import type { PhotoManifest } from '~/types/photo'
 
 import { ReactionRail } from '../social'
@@ -416,22 +415,6 @@ export const PhotoViewer = ({
 
                       {/* 右侧按钮组 */}
                       <div className="flex items-center gap-2">
-                        {/* 分享按钮 */}
-                        <ShareModal
-                          photo={currentPhoto}
-                          blobSrc={currentBlobSrc || undefined}
-                          trigger={(
-                            <button
-                              type="button"
-                              disabled={!isMobileChromeInteractive}
-                              className={`bg-material-ultra-thick ${mobileChromeButtonClassName} flex size-8 items-center justify-center rounded-full text-white backdrop-blur-2xl duration-200 hover:bg-black/40 disabled:cursor-default`}
-                              title={t('photo.share.title')}
-                            >
-                              <i className="i-mingcute-share-2-line" />
-                            </button>
-                          )}
-                        />
-
                         {/* 展开信息面板（桌面端在折叠时显示） */}
                         {!isMobile && !isInspectorVisible && (
                           <button

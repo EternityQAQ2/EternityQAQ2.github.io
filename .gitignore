@@ -13,3 +13,5 @@ afilmory/node_modules
 afilmory/apps/web/dist
 afilmory/packages/webgl-viewer/dist
 afilmory/apps/web/public/photos
+afilmory/apps/web/public/thumbnails/
+上传博客与相册.md

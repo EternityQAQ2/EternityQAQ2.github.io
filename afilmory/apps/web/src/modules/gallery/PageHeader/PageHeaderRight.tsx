@@ -104,7 +104,6 @@ const MoreActionMenu = () => {
     = siteConfig.social && siteConfig.social.twitter
       ? resolveSocialUrl(siteConfig.social.twitter, { baseUrl: 'https://twitter.com/', stripAt: true })
       : undefined
-  const hasRss = true
 
   return (
     <DropdownMenu>
@@ -140,7 +139,7 @@ const MoreActionMenu = () => {
           {settings.viewMode === 'list' && <i className="i-mingcute-check-line text-base" />}
         </DropdownMenuItem>
 
-        {(githubUrl || twitterUrl || hasRss) && <DropdownMenuSeparator />}
+        {(githubUrl || twitterUrl) && <DropdownMenuSeparator />}
 
         {githubUrl && (
           <DropdownMenuItem asChild>
@@ -155,14 +154,6 @@ const MoreActionMenu = () => {
             <a href={twitterUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2">
               <i className="i-mingcute-twitter-fill text-base" />
               Twitter
-            </a>
-          </DropdownMenuItem>
-        )}
-        {hasRss && (
-          <DropdownMenuItem asChild>
-            <a href="/feed.xml" target="_blank" rel="noreferrer" className="flex items-center gap-2">
-              <i className="i-mingcute-rss-2-fill text-base" />
-              RSS
             </a>
           </DropdownMenuItem>
         )}
